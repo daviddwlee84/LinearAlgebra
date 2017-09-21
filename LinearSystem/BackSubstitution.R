@@ -14,7 +14,11 @@ BackSubstitution <- function(coefMatrix, attachVector, print = FALSE){
 			for(irow in c((row+1):dim(coefMatrix)[1])){
 				if(coefMatrix[irow,row] != 0){
 					# interchange rows => pivotal row is the first row
-					coefMatrix[,c(row, irow)] <- coefMatrix[,c(irow, row)]
+					if(print){
+						cat("Interchange ", irow, "rows with", row, "rows\n")
+					}
+					coefMatrix[c(row, irow),] <- coefMatrix[c(irow, row),]
+					attachVector[c(row, irow)] <- attachVector[c(irow, row)]
 					break
 				}
 				if(irow == dim(coefMatrix)[1]){
