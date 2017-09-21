@@ -11,10 +11,11 @@ BackSubstitution <- function(coefMatrix, attachVector, print = FALSE){
 	for(row in c(1:(dim(coefMatrix)[1]-1))){
 		if(coefMatrix[row,row] == 0){
 			# make sure the pivot element is in pivotal row
-			for(irow in c(row:dim(coefMatrix)[1])){
+			for(irow in c((row+1):dim(coefMatrix)[1])){
 				if(coefMatrix[irow,row] != 0){
 					# interchange rows => pivotal row is the first row
 					coefMatrix[,c(row, irow)] <- coefMatrix[,c(irow, row)]
+					break
 				}
 				if(irow == dim(coefMatrix)[1]){
 					cat("Error: The ", row, " column is all 0\n")
