@@ -1,8 +1,15 @@
 library(MASS) # used for fractions() function
-
-# Reduce Augmented Matrix to Strictly Triangular Form
-# (only works for square matrix)
-# Using Row Operations I, III
+#' Reduce Augmented Matrix
+#' 
+#' Reduce Augmented Matrix to Strictly Triangular Form
+#' (only works for square matrix)
+#' Using Row Operations I, III
+#' @param coefMatrix ceofficient matrix
+#' @param attachVector An additional column which attach to the coefficient matrix => augmented matrix
+#' @param FRAC Flag of showing result by fraction (Default is TRUE)
+#' @param PRINT Flag of printing process detail (Default is FALSE)
+#' @return Return a List with StrictlyTriangularForm; AttachVector; Answer
+#' @export
 ReduceAugmentedMatrix <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = FALSE){
 	if(is.null(dim(coefMatrix))){
 		cat("Error: Please Input Matrix\n")
@@ -72,13 +79,20 @@ SolveSTF <- function(STFMatrix, attachVector){
 
 
 
-# Gaussian Elimination: Reduce Augmented Matrix to Row Echelon Form
-# Definition: A matrix is said to be in row echelon form
-# (i)	If the first nonzero entry in each nonzero row is 1.
-# (ii)	If row k does not consist entirely of zeros, the number of leading zero entries in row k + 1 is greater than the number of leading zero entries in row k.
-# (iii)	If there are rows whose entries are all zero, they are below the row shaving nonzero entries.
-#
-# Using Row Operations I, II, III
+#' Gaussian Elimination
+#' 
+#' Gaussian Elimination: Reduce Augmented Matrix to Row Echelon Form
+#' Definition: A matrix is said to be in row echelon form
+#' (i)	If the first nonzero entry in each nonzero row is 1.
+#' (ii)	If row k does not consist entirely of zeros, the number of leading zero entries in row k + 1 is greater than the number of leading zero entries in row k.
+#' (iii)	If there are rows whose entries are all zero, they are below the row shaving nonzero entries.
+#' Using Row Operations I, II, III
+#' @param coefMatrix ceofficient matrix
+#' @param attachVector An additional column which attach to the coefficient matrix => augmented matrix
+#' @param FRAC Flag of showing result by fraction (Default is TRUE)
+#' @param PRINT Flag of printing process detail (Default is FALSE)
+#' @return Return a List with StrictlyTriangularForm; AttachVector
+#' @export
 GaussianElimination <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = FALSE){
 	if(is.null(dim(coefMatrix))){
 		cat("Error: Please Input Matrix\n")
