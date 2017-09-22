@@ -1,7 +1,9 @@
+library(MASS) # used for fractions() function
+
 # Reduce Augmented Matrix to Strictly Triangular Form
 # (only works for square matrix)
 # Using Row Operations I, III
-ReduceAugmentedMatrix <- function(coefMatrix, attachVector, print = FALSE){
+ReduceAugmentedMatrix <- function(coefMatrix, attachVector, frac = TRUE, print = FALSE){
 	if(is.null(dim(coefMatrix))){
 		cat("Error: Please Input Matrix\n")
 		return(NA)
@@ -45,6 +47,11 @@ ReduceAugmentedMatrix <- function(coefMatrix, attachVector, print = FALSE){
 		}
 	}
 	answer <- SolveSTF(coefMatrix, attachVector)
+	if(frac){
+		coefMatrix <- fractions(coefMatrix)
+		attachVector <- fractions(attachVector)
+		answer <- fractions(answer)
+	}
 	return(list(StrictlyTriangularForm=coefMatrix, AttachVector=matrix(attachVector), Answer=answer))
 }
 
@@ -72,7 +79,7 @@ SolveSTF <- function(STFMatrix, attachVector){
 # (iii)	If there are rows whose entries are all zero, they are below the row shaving nonzero entries.
 #
 # Using Row Operations I, II, III
-GaussianElimination <- function(coefMatrix, attachVector, print = FALSE){
+GaussianElimination <- function(coefMatrix, attachVector, frac = TRUE, print = FALSE){
 	if(is.null(dim(coefMatrix))){
 		cat("Error: Please Input Matrix\n")
 		return(NA)
@@ -133,6 +140,11 @@ GaussianElimination <- function(coefMatrix, attachVector, print = FALSE){
 		} else {
 			break
 		}
+	}
+	if(frac){
+		coefMatrix <- fractions(coefMatrix)
+		attachVector <- fractions(attachVector)
+		#answer <- fractions(answer)
 	}
 	return(list(RowEchelonForm=coefMatrix, AttachVector=matrix(attachVector)))
 }
