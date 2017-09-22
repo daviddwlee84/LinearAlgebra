@@ -3,7 +3,7 @@ library(MASS) # used for fractions() function
 # Reduce Augmented Matrix to Strictly Triangular Form
 # (only works for square matrix)
 # Using Row Operations I, III
-ReduceAugmentedMatrix <- function(coefMatrix, attachVector, frac = TRUE, print = FALSE){
+ReduceAugmentedMatrix <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = FALSE){
 	if(is.null(dim(coefMatrix))){
 		cat("Error: Please Input Matrix\n")
 		return(NA)
@@ -19,7 +19,7 @@ ReduceAugmentedMatrix <- function(coefMatrix, attachVector, frac = TRUE, print =
 				if(coefMatrix[irow,row] != 0){
 					# Row Operation I
 					# interchange rows => pivotal row is the first row
-					if(print){
+					if(PRINT){
 						cat("Interchange ", irow, "rows with", row, "rows\n")
 					}
 					coefMatrix[c(row, irow),] <- coefMatrix[c(irow, row),]
@@ -40,14 +40,14 @@ ReduceAugmentedMatrix <- function(coefMatrix, attachVector, frac = TRUE, print =
 			coefMatrix[irow,] <- coefMatrix[irow,] - times * pivotal_row
 			attachVector[irow] <- attachVector[irow] - times * attachVector[row]
 		}
-		if(print){
+		if(PRINT){
 			cat("Step ", row, " result:\n")
 			cat("pivot: ", pivot, "\n")
 			print(coefMatrix)
 		}
 	}
 	answer <- SolveSTF(coefMatrix, attachVector)
-	if(frac){
+	if(FRAC){
 		coefMatrix <- fractions(coefMatrix)
 		attachVector <- fractions(attachVector)
 		answer <- fractions(answer)
@@ -79,7 +79,7 @@ SolveSTF <- function(STFMatrix, attachVector){
 # (iii)	If there are rows whose entries are all zero, they are below the row shaving nonzero entries.
 #
 # Using Row Operations I, II, III
-GaussianElimination <- function(coefMatrix, attachVector, frac = TRUE, print = FALSE){
+GaussianElimination <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = FALSE){
 	if(is.null(dim(coefMatrix))){
 		cat("Error: Please Input Matrix\n")
 		return(NA)
@@ -94,7 +94,7 @@ GaussianElimination <- function(coefMatrix, attachVector, frac = TRUE, print = F
 					if(coefMatrix[irow,col] != 0){
 						# Row Operation I
 						# interchange rows => pivotal row is the first row
-						if(print){
+						if(PRINT){
 							cat("Interchange ", irow, "rows with", row, "rows\n")
 						}
 						coefMatrix[c(row, irow), ] <- coefMatrix[c(irow, row), ]
@@ -104,7 +104,7 @@ GaussianElimination <- function(coefMatrix, attachVector, frac = TRUE, print = F
 					}
 					if(irow == dim(coefMatrix)[1]){
 						# all the possible choices for a pivot element in a given column are 0
-						if(print){
+						if(PRINT){
 							cat("Going to next column (", col, ")\n")
 						}
 						col <- col + 1
@@ -130,7 +130,7 @@ GaussianElimination <- function(coefMatrix, attachVector, frac = TRUE, print = F
 		coefMatrix[row,] <- pivotal_row/pivot
 		attachVector[row] <- attachVector[row]/pivot
 		
-		if(print){
+		if(PRINT){
 			cat("Step ", row, " result:\n")
 			cat("pivot: ", pivot, "\n")
 			print(coefMatrix)
@@ -141,7 +141,7 @@ GaussianElimination <- function(coefMatrix, attachVector, frac = TRUE, print = F
 			break
 		}
 	}
-	if(frac){
+	if(FRAC){
 		coefMatrix <- fractions(coefMatrix)
 		attachVector <- fractions(attachVector)
 		#answer <- fractions(answer)
