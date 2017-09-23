@@ -5,7 +5,7 @@
 \title{Reduce Augmented Matrix}
 \usage{
 ReduceAugmentedMatrix(coefMatrix, attachVector = NA, FRAC = TRUE,
-  PRINT = FALSE)
+  PRINT = FALSE, SOLVE = TRUE)
 }
 \arguments{
 \item{coefMatrix}{ceofficient matrix}

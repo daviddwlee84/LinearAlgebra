@@ -88,7 +88,7 @@ ReduceAugmentedMatrix <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PR
 
 # Solve Strictly Triangular Form by Back Substitution
 # (only works for square matrix)
-# TODO: consistent: multiple answer & inconsistent
+# TODO: infinity solution
 SolveSTF <- function(STFMatrix, attachVector){
   if(!isConsistent(STFMatrix, attachVector)){
     cat("System is inconsistent\n")
@@ -137,7 +137,7 @@ GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRIN
   }
   
 	col <- 1
-	for(row in c(1:(dim(coefMatrix)[1]))){
+	for(row in c(1:(dim(coefMatrix)[1]-1))){
 		findPivot <- FALSE
 		while(!findPivot){
 			if(coefMatrix[row,col] == 0){
@@ -159,7 +159,6 @@ GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRIN
 						if(PRINT){
 							cat("Going to next column (", col, ")\n")
 						}
-						col <- col + 1
 					}
 				}
 			} else {
@@ -196,7 +195,6 @@ GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRIN
 	}
 	
 	if(SOLVE){
-	  print(attachVector)
 	  answer <- SolveREF(coefMatrix, attachVector, FRAC)
 	} else {
 	  answer <- NULL
@@ -214,6 +212,7 @@ GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRIN
 }
 
 # Solve Reduce Echelon Form by Back Substitution
+# TODO: infinity solution
 SolveREF <- function(REFMatrix, attachVector, FRAC){
   if(!isConsistent(REFMatrix, attachVector)){
     cat("System is inconsistent\n")
@@ -239,7 +238,7 @@ SolveREF <- function(REFMatrix, attachVector, FRAC){
                stfcol <- stfcol + 1
              },
              "F"={
-               RHSMatrix[row, rhscol] <- REFMatrix[row, col]
+               RHSMatrix[row, rhscol] <- -REFMatrix[row, col]
                rhscol <- rhscol + 1
              })
     }
@@ -283,10 +282,18 @@ SolveREF <- function(REFMatrix, attachVector, FRAC){
                 tempAnswer <- paste0(answerMatrix[row,col], " * x", freeVarCol[col-1])
               }
             } else{
-              if(answerMatrix[row,col] == 1){
-                tempAnswer <- paste0(tempAnswer, " + ", "x", freeVarCol[col-1])
+              if(abs(answerMatrix[row,col]) == 1){
+                if(answerMatrix[row,col] > 0){
+                  tempAnswer <- paste0(tempAnswer, " + ", "x", freeVarCol[col-1])
+                } else {
+                  tempAnswer <- paste0(tempAnswer, " - ", "x", freeVarCol[col-1])
+                }
               } else {
-                tempAnswer <- paste0(tempAnswer, " + ", answerMatrix[row,col], " * x", freeVarCol[col-1])
+                if(answerMatrix[row,col] > 0){
+                  tempAnswer <- paste0(tempAnswer, " + ", answerMatrix[row,col], " * x", freeVarCol[col-1])
+                } else {
+                  tempAnswer <- paste0(tempAnswer, " - ", -answerMatrix[row,col], " * x", freeVarCol[col-1])
+                }
               }
             }
           }
@@ -310,18 +317,18 @@ FindVariables <- function(REFMatrix){
   for(row in c(1:dim(REFMatrix)[1])){
     for(col in c(varcol+1:dim(REFMatrix)[2])){
       varcol <- col
+      if(varcol > dim(REFMatrix)[2]){
+        break
+      }
       if(REFMatrix[row, col] != 0){
-        variables[col] <- "L"
+        variables[varcol] <- "L"
         Lcount <- Lcount + 1
         break # next row
       } else {
-        variables[col] <- "F"
+        variables[varcol] <- "F"
         Fcount <- Fcount + 1
         next # next col
       }
-    }
-    if(varcol == dim(REFMatrix)[2]){
-      break
     }
   }
   return(list(variables, row, c(Lcount, Fcount)))
@@ -380,12 +387,15 @@ isConsistent <- function(Matrix, attachMatrix){
   if(dim(Matrix)[1] != dim(attachMatrix)[1]){
     return(FALSE)
   }
+  
   temp <- GaussianElimination(Matrix, attachMatrix, FRAC = FALSE, SOLVE = FALSE)
   REFMatrix <- temp$RowEchelonForm
   attachVector <- temp$AttachVector
+  
   for(row in c(dim(REFMatrix)[1]:1)){
     if(allZero(REFMatrix[row, ])){
       if(!allZero(attachVector[row, ])){
+        cat(row, "HI")
         return(FALSE)
       }
     } else {
@@ -396,7 +406,7 @@ isConsistent <- function(Matrix, attachMatrix){
 
 # Test if all element is zero
 allZero <- function(Vector){
-  for(i in length(Vector)){
+  for(i in c(1:length(Vector))){
     if(Vector[i] != 0){
       return(FALSE)
     }

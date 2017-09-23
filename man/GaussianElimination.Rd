@@ -5,7 +5,7 @@
 \title{Gaussian Elimination}
 \usage{
 GaussianElimination(coefMatrix, attachVector = NA, FRAC = TRUE,
-  PRINT = FALSE)
+  PRINT = FALSE, SOLVE = TRUE)
 }
 \arguments{
 \item{coefMatrix}{ceofficient matrix}

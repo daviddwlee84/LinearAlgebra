@@ -9,7 +9,7 @@ isConsistent(Matrix, attachMatrix)
 \arguments{
 \item{Matrix}{any matrix}
 
-\item{attachMatrix}{matrix or vector}
+\item{attachMatrix}{matrix or vector (only support vector for current version)}
 }
 \value{
 consistent: TRUE; inconsisitent: FALSE
