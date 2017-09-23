@@ -121,9 +121,10 @@ SolveSTF <- function(STFMatrix, attachVector){
 #' @param attachVector An additional column which attach to the coefficient matrix => augmented matrix
 #' @param FRAC Flag of showing result by fraction (Default is TRUE)
 #' @param PRINT Flag of printing process detail (Default is FALSE)
+#' @param accuracy Number lower than accuracy equal 0 (set NA to unable)
 #' @return Return a List with StrictlyTriangularForm; AttachVector; Answer (answer will show in string if there is any free variable)
 #' @export
-GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRINT = FALSE, SOLVE = TRUE){
+GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRINT = FALSE, SOLVE = TRUE, accuracy=1e-10){
 	if(is.null(dim(coefMatrix))){
 		cat("Error: Please Input Matrix\n")
 		return(NULL)
@@ -195,7 +196,7 @@ GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRIN
 	}
 	
 	if(SOLVE){
-	  answer <- SolveREF(coefMatrix, attachVector, FRAC)
+	  answer <- SolveREF(coefMatrix, attachVector, FRAC, accuracy)
 	} else {
 	  answer <- NULL
 	}
@@ -212,13 +213,12 @@ GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRIN
 }
 
 # Solve Reduce Echelon Form by Back Substitution
-# TODO: infinity solution
-SolveREF <- function(REFMatrix, attachVector, FRAC){
+SolveREF <- function(REFMatrix, attachVector, FRAC, accuracy=NA){
   if(!isConsistent(REFMatrix, attachVector)){
     cat("System is inconsistent\n")
     return(NULL)
   }
-  temp <- FindVariables(REFMatrix)
+  temp <- FindVariables(REFMatrix, accuracy)
   variables <- temp[[1]]
   rows <- temp[[2]]
   varcount <- temp[[3]]
@@ -255,6 +255,16 @@ SolveREF <- function(REFMatrix, attachVector, FRAC){
   for(col in c(1:dim(REFMatrix)[2])){
     if(variables[col] == "F"){
       freeVarCol <- c(freeVarCol, col)
+    }
+  }
+  
+  if(!is.na(accuracy)){
+    for(row in c(1:dim(answerMatrix)[1])){
+      for(col in c(1:dim(answerMatrix)[2])){
+        if(abs(answerMatrix[row, col]) < accuracy){
+          answerMatrix[row, col] <- 0
+        }
+      }
     }
   }
   
@@ -307,9 +317,11 @@ SolveREF <- function(REFMatrix, attachVector, FRAC){
 }
 
 # Find Leading Variables and Free Variables
+# Less than accuracy = 0 (default = NA)
 # return Leading Variables as "L"
 # return Free Variables as "F"
-FindVariables <- function(REFMatrix){
+FindVariables <- function(REFMatrix, accuracy=NA){
+
   variables <- NULL
   varcol <- 0
   Lcount <- 0
@@ -320,15 +332,28 @@ FindVariables <- function(REFMatrix){
       if(varcol > dim(REFMatrix)[2]){
         break
       }
-      if(REFMatrix[row, col] != 0){
-        variables[varcol] <- "L"
-        Lcount <- Lcount + 1
-        break # next row
+      if(is.na(accuracy)){
+        if(REFMatrix[row, col] != 0){
+          variables[varcol] <- "L"
+          Lcount <- Lcount + 1
+          break # next row
+        } else {
+          variables[varcol] <- "F"
+          Fcount <- Fcount + 1
+          next # next col
+        }
       } else {
-        variables[varcol] <- "F"
-        Fcount <- Fcount + 1
-        next # next col
+        if(abs(REFMatrix[row, col]) > accuracy){
+          variables[varcol] <- "L"
+          Lcount <- Lcount + 1
+          break # next row
+        } else {
+          variables[varcol] <- "F"
+          Fcount <- Fcount + 1
+          next # next col
+        }
       }
+      
     }
   }
   return(list(variables, row, c(Lcount, Fcount)))
@@ -337,7 +362,6 @@ FindVariables <- function(REFMatrix){
 # Modified Solve Strictly Triangular Form by Back Substitution
 # (only works for square matrix)
 # (will have the same result as solve(STFMatrix, RHSMatrix))
-# TODO: consistent: multiple answer & inconsistent
 MSolveSTF <- function(STFMatrix, RHSMatrix){
   answerMatrix <- matrix(NA, dim(RHSMatrix)[1], dim(RHSMatrix)[2])
   for(row in c((dim(STFMatrix)[1]):1)){
@@ -356,7 +380,6 @@ MSolveSTF <- function(STFMatrix, RHSMatrix){
 # return next pivot location
 # [[Deprecated]]
 FindNextPivot <- function(REFMatrix, currentPivot){
-  print(currentPivot)
   if(currentPivot[1] == dim(REFMatrix)[1] || currentPivot[2] == dim(REFMatrix)[2]){
     return(NULL)
   }
@@ -395,7 +418,6 @@ isConsistent <- function(Matrix, attachMatrix){
   for(row in c(dim(REFMatrix)[1]:1)){
     if(allZero(REFMatrix[row, ])){
       if(!allZero(attachVector[row, ])){
-        cat(row, "HI")
         return(FALSE)
       }
     } else {

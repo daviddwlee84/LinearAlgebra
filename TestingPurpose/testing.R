@@ -29,9 +29,9 @@ sunnyv3 <- testingMatrix[[10]]
 #print(attvec2)
 #print(ReduceAugmentedMatrix(matrix2, attvec2))
 
-print(sunnym3)
-print(sunnyv3)
-print(ReduceAugmentedMatrix(sunnym3, sunnyv3, PRINT=TRUE))
+#print(sunnym3)
+#print(sunnyv3)
+#print(ReduceAugmentedMatrix(sunnym3, sunnyv3, PRINT=TRUE))
 
 # test for GaussianElimination
 
