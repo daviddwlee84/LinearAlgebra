@@ -13,11 +13,11 @@ library(MASS) # used for fractions() function
 ReduceAugmentedMatrix <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = FALSE){
 	if(is.null(dim(coefMatrix))){
 		cat("Error: Please Input Matrix\n")
-		return(NA)
+		return(NULL)
 	}
 	if(dim(coefMatrix)[1] != dim(coefMatrix)[2]){
 		cat("Error: Please Input Square Matrix\n")
-		return(NA)
+		return(NULL)
 	}
 	for(row in c(1:(dim(coefMatrix)[1]-1))){
 		if(coefMatrix[row,row] == 0){
@@ -35,7 +35,7 @@ ReduceAugmentedMatrix <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT =
 				}
 				if(irow == dim(coefMatrix)[1]){
 					cat("Error: The ", row, " column is all 0\n")
-					return(NA)
+					return(NULL)
 				}
 			}
 		}
@@ -64,6 +64,7 @@ ReduceAugmentedMatrix <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT =
 
 # Solve Strictly Triangular Form by Back Substitution
 # (only works for square matrix)
+# TODO: consistent: multiple answer & inconsistent
 SolveSTF <- function(STFMatrix, attachVector){
 	pivot <- STFMatrix[dim(STFMatrix)[1],dim(STFMatrix)[2]]
 	answer <- attachVector[dim(STFMatrix)[1]]/pivot
@@ -96,7 +97,7 @@ SolveSTF <- function(STFMatrix, attachVector){
 GaussianElimination <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = FALSE){
 	if(is.null(dim(coefMatrix))){
 		cat("Error: Please Input Matrix\n")
-		return(NA)
+		return(NULL)
 	}
 	col <- 1
 	for(row in c(1:(dim(coefMatrix)[1]))){
@@ -146,7 +147,6 @@ GaussianElimination <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = F
 		
 		if(PRINT){
 			cat("Step ", row, " result:\n")
-			cat("pivot: ", pivot, "\n")
 			print(coefMatrix)
 		}
 		if(col < dim(coefMatrix)[2]){
@@ -155,11 +155,49 @@ GaussianElimination <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = F
 			break
 		}
 	}
+	answer <- SolveREF(coefMatrix, attachVector)
 	if(FRAC){
 		coefMatrix <- fractions(coefMatrix)
 		attachVector <- fractions(attachVector)
-		#answer <- fractions(answer)
+		answer <- fractions(answer)
 	}
-	return(list(RowEchelonForm=coefMatrix, AttachVector=matrix(attachVector)))
+	return(list(RowEchelonForm=coefMatrix, AttachVector=matrix(attachVector), Answer=answer))
+}
+
+# Solve Reduce Echelon Form by Back Substitution
+# TODO: consistent: multiple answer & inconsistent
+SolveREF <- function(REFMatrix, attachVector){
+	pivot <- FindNextPivot(REFMatrix, c(1, 1)) # pivot is the location not value
+	if(is.null(pivot)){
+	  return(NULL)
+	} else {
+	  leadingVariables <- pivot[2] # leadingVariables store column
+	}
+	while(TRUE){
+	  # finding all leading variable
+		pivot <- FindNextPivot(REFMatrix, pivot)
+		if(is.null(pivot)){
+			break
+		}
+		leadingVariables <- c(leadingVariables, pivot[2])
+	}
+	return(answer)
+}
+
+# Find Next Pivot (Leading Variable)
+FindNextPivot <- function(REFMatrix, currentPivot){
+  print(currentPivot)
+	if(currentPivot[1] == dim(REFMatrix)[1] || currentPivot[2] == dim(REFMatrix)[2]){
+	  return(NULL)
+	}
+  row <- currentPivot[1] + 1
+	for(col in c((currentPivot[2]+1):dim(REFMatrix)[2])){
+	  if(REFMatrix[row, col] != 0){
+			return(c(row, col))
+		}
+	  if(col == dim(REFMatrix)[2]) {
+  			return(NULL)
+		}
+	}
 }
 
