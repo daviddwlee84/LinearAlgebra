@@ -2,6 +2,7 @@ Package: LinearAlgebra
 Title: Linear Algebra Package
 Description: Functions to calculate linear algebra problems
 Version: 0.1
+Date: 2017-09-22
 Author: David D.W.Lee <daviddwlee84@gmail.com>
 Maintainer: David D.W.Lee <daviddwlee84@gmail.com>
 Depends: R (>= 3.0.1)

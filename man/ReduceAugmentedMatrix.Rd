@@ -20,6 +20,7 @@ Return a List with StrictlyTriangularForm; AttachVector; Answer
 }
 \description{
 Reduce Augmented Matrix to Strictly Triangular Form
-(only works for square matrix)
 Using Row Operations I, III
+(only works for square matrix)
+(will have the same result as solve(coefMatrix, attachVector))
 }

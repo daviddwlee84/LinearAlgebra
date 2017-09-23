@@ -2,8 +2,9 @@ library(MASS) # used for fractions() function
 #' Reduce Augmented Matrix
 #' 
 #' Reduce Augmented Matrix to Strictly Triangular Form
-#' (only works for square matrix)
 #' Using Row Operations I, III
+#' (only works for square matrix)
+#' (will have the same result as solve(coefMatrix, attachVector))
 #' @param coefMatrix ceofficient matrix
 #' @param attachVector An additional column which attach to the coefficient matrix => augmented matrix
 #' @param FRAC Flag of showing result by fraction (Default is TRUE)
@@ -88,11 +89,12 @@ SolveSTF <- function(STFMatrix, attachVector){
 #' (ii)	If row k does not consist entirely of zeros, the number of leading zero entries in row k + 1 is greater than the number of leading zero entries in row k.
 #' (iii)	If there are rows whose entries are all zero, they are below the row shaving nonzero entries.
 #' Using Row Operations I, II, III
+#' 
 #' @param coefMatrix ceofficient matrix
 #' @param attachVector An additional column which attach to the coefficient matrix => augmented matrix
 #' @param FRAC Flag of showing result by fraction (Default is TRUE)
 #' @param PRINT Flag of printing process detail (Default is FALSE)
-#' @return Return a List with StrictlyTriangularForm; AttachVector
+#' @return Return a List with StrictlyTriangularForm; AttachVector; Answer (answer will show in string if there is any free variable)
 #' @export
 GaussianElimination <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = FALSE){
 	if(is.null(dim(coefMatrix))){
@@ -155,25 +157,94 @@ GaussianElimination <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = F
 			break
 		}
 	}
-	answer <- SolveREF(coefMatrix, attachVector)
+	answer <- SolveREF(coefMatrix, attachVector, FRAC)
 	if(FRAC){
 		coefMatrix <- fractions(coefMatrix)
 		attachVector <- fractions(attachVector)
-		answer <- fractions(answer)
 	}
 	return(list(RowEchelonForm=coefMatrix, AttachVector=matrix(attachVector), Answer=answer))
 }
 
 # Solve Reduce Echelon Form by Back Substitution
 # TODO: consistent: multiple answer & inconsistent
-SolveREF <- function(REFMatrix, attachVector){
-  variables <- FindVariables(REFMatrix)
+SolveREF <- function(REFMatrix, attachVector, FRAC){
+  temp <- FindVariables(REFMatrix)
+  variables <- temp[[1]]
+  rows <- temp[[2]]
+  varcount <- temp[[3]]
   if(is.null(variables)){
     return(NULL)
   }
-  print(variables)
+  STFMatrix <- matrix(NA, rows, varcount[1])
+  RHSMatrix <- matrix(NA, rows, varcount[2]+1) # Right-hand side
+  RHSMatrix[,1] <- attachVector[c(1:rows)]
+  for(row in c(1:rows)){
+    stfcol <- 1
+    rhscol <- 2
+    for(col in c(1:dim(REFMatrix)[2])){
+      switch(variables[col],
+             "L"={
+               STFMatrix[row, stfcol] <- REFMatrix[row, col]
+               stfcol <- stfcol + 1
+             },
+             "F"={
+               RHSMatrix[row, rhscol] <- REFMatrix[row, col]
+               rhscol <- rhscol + 1
+             })
+    }
+  }
   
+  answerMatrix <- MSolveSTF(STFMatrix, RHSMatrix)
   
+  if(FRAC){
+    answerMatrix <- fractions(answerMatrix)
+  }
+  
+  # Find free variables column
+  freeVarCol <- NULL
+  for(col in c(1:dim(REFMatrix)[2])){
+    if(variables[col] == "F"){
+      freeVarCol <- c(freeVarCol, col)
+    }
+  }
+  
+  # Listing the answer
+  if(is.null(freeVarCol)){
+    # Without free variable
+    answer <- answerMatrix
+  } else {
+    # Show answer in strings and represent free variable in xn
+    answer <- NULL
+    for(row in c(1:dim(answerMatrix)[1])){
+      tempAnswer <- NULL
+      firstVal <- TRUE
+      for(col in c(1:dim(answerMatrix)[2])){
+        if(answerMatrix[row,col] != 0){
+          if(col == 1){
+            tempAnswer <- paste0(answerMatrix[row,col])
+            firstVal <- FALSE
+          } else {
+            if(firstVal){
+              if(answerMatrix[row,col] == 1){
+                tempAnswer <- paste0("x", freeVarCol[col-1])
+                firstVal <- FALSE
+              } else {
+                tempAnswer <- paste0(answerMatrix[row,col], " * x", freeVarCol[col-1])
+              }
+            } else{
+              if(answerMatrix[row,col] == 1){
+                tempAnswer <- paste0(tempAnswer, " + ", "x", freeVarCol[col-1])
+              } else {
+                tempAnswer <- paste0(tempAnswer, " + ", answerMatrix[row,col], " * x", freeVarCol[col-1])
+              }
+            }
+          }
+        }
+      }
+      answer <- c(answer, tempAnswer)
+    }
+    answer <- matrix(answer)
+  }
   return(answer)
 }
 
@@ -183,15 +254,18 @@ SolveREF <- function(REFMatrix, attachVector){
 FindVariables <- function(REFMatrix){
   variables <- NULL
   varcol <- 0
+  Lcount <- 0
+  Fcount <- 0
   for(row in c(1:dim(REFMatrix)[1])){
     for(col in c(varcol+1:dim(REFMatrix)[2])){
       varcol <- col
-      print(c(row, col))
       if(REFMatrix[row, col] != 0){
         variables[col] <- "L"
+        Lcount <- Lcount + 1
         break # next row
       } else {
         variables[col] <- "F"
+        Fcount <- Fcount + 1
         next # next col
       }
     }
@@ -199,8 +273,26 @@ FindVariables <- function(REFMatrix){
       break
     }
   }
-  return(variables)
+  return(list(variables, row, c(Lcount, Fcount)))
 }
+
+# Modified Solve Strictly Triangular Form by Back Substitution
+# (only works for square matrix)
+# (will have the same result as solve(STFMatrix, RHSMatrix))
+# TODO: consistent: multiple answer & inconsistent
+MSolveSTF <- function(STFMatrix, RHSMatrix){
+  answerMatrix <- matrix(NA, dim(RHSMatrix)[1], dim(RHSMatrix)[2])
+  for(row in c((dim(STFMatrix)[1]):1)){
+    answerMatrix[row, ] <- RHSMatrix[row, ]
+    for(col in c(row:dim(STFMatrix)[2])){
+      if(col < dim(STFMatrix)[2]){
+        answerMatrix[row, ] <- answerMatrix[row, ] - STFMatrix[row, col+1]*answerMatrix[col+1,]
+      }
+    }
+  }
+  return(answerMatrix)
+}
+
 
 # Find Next Pivot (Leading Variable)
 # return next pivot location

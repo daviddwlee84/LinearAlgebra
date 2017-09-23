@@ -16,7 +16,7 @@ GaussianElimination(coefMatrix, attachVector, FRAC = TRUE, PRINT = FALSE)
 \item{PRINT}{Flag of printing process detail (Default is FALSE)}
 }
 \value{
-Return a List with StrictlyTriangularForm; AttachVector
+Return a List with StrictlyTriangularForm; AttachVector; Answer (answer will show in string if there is any free variable)
 }
 \description{
 Gaussian Elimination: Reduce Augmented Matrix to Row Echelon Form
