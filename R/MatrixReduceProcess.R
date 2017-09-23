@@ -167,37 +167,59 @@ GaussianElimination <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = F
 # Solve Reduce Echelon Form by Back Substitution
 # TODO: consistent: multiple answer & inconsistent
 SolveREF <- function(REFMatrix, attachVector){
-	pivot <- FindNextPivot(REFMatrix, c(1, 1)) # pivot is the location not value
-	if(is.null(pivot)){
-	  return(NULL)
-	} else {
-	  leadingVariables <- pivot[2] # leadingVariables store column
-	}
-	while(TRUE){
-	  # finding all leading variable
-		pivot <- FindNextPivot(REFMatrix, pivot)
-		if(is.null(pivot)){
-			break
-		}
-		leadingVariables <- c(leadingVariables, pivot[2])
-	}
-	return(answer)
+  variables <- FindVariables(REFMatrix)
+  if(is.null(variables)){
+    return(NULL)
+  }
+  print(variables)
+  
+  
+  return(answer)
+}
+
+# Find Leading Variables and Free Variables
+# return Leading Variables as "L"
+# return Free Variables as "F"
+FindVariables <- function(REFMatrix){
+  variables <- NULL
+  varcol <- 0
+  for(row in c(1:dim(REFMatrix)[1])){
+    for(col in c(varcol+1:dim(REFMatrix)[2])){
+      varcol <- col
+      print(c(row, col))
+      if(REFMatrix[row, col] != 0){
+        variables[col] <- "L"
+        break # next row
+      } else {
+        variables[col] <- "F"
+        next # next col
+      }
+    }
+    if(varcol == dim(REFMatrix)[2]){
+      break
+    }
+  }
+  return(variables)
 }
 
 # Find Next Pivot (Leading Variable)
+# return next pivot location
+# [[Deprecated]]
 FindNextPivot <- function(REFMatrix, currentPivot){
   print(currentPivot)
-	if(currentPivot[1] == dim(REFMatrix)[1] || currentPivot[2] == dim(REFMatrix)[2]){
-	  return(NULL)
-	}
+  if(currentPivot[1] == dim(REFMatrix)[1] || currentPivot[2] == dim(REFMatrix)[2]){
+    return(NULL)
+  }
   row <- currentPivot[1] + 1
-	for(col in c((currentPivot[2]+1):dim(REFMatrix)[2])){
-	  if(REFMatrix[row, col] != 0){
-			return(c(row, col))
-		}
-	  if(col == dim(REFMatrix)[2]) {
-  			return(NULL)
-		}
-	}
+  for(col in c((currentPivot[2]+1):dim(REFMatrix)[2])){
+    if(REFMatrix[row, col] != 0){
+      return(c(row, col))
+    }
+    if(col == dim(REFMatrix)[2]) {
+      return(NULL)
+    }
+  }
 }
+
+
 
