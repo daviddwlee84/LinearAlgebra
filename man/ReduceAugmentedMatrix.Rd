@@ -4,7 +4,8 @@
 \alias{ReduceAugmentedMatrix}
 \title{Reduce Augmented Matrix}
 \usage{
-ReduceAugmentedMatrix(coefMatrix, attachVector, FRAC = TRUE, PRINT = FALSE)
+ReduceAugmentedMatrix(coefMatrix, attachVector = NA, FRAC = TRUE,
+  PRINT = FALSE)
 }
 \arguments{
 \item{coefMatrix}{ceofficient matrix}

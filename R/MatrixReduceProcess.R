@@ -11,7 +11,7 @@ library(MASS) # used for fractions() function
 #' @param PRINT Flag of printing process detail (Default is FALSE)
 #' @return Return a List with StrictlyTriangularForm; AttachVector; Answer
 #' @export
-ReduceAugmentedMatrix <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = FALSE){
+ReduceAugmentedMatrix <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRINT = FALSE){
 	if(is.null(dim(coefMatrix))){
 		cat("Error: Please Input Matrix\n")
 		return(NULL)
@@ -20,6 +20,13 @@ ReduceAugmentedMatrix <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT =
 		cat("Error: Please Input Square Matrix\n")
 		return(NULL)
 	}
+  if(is.na(attachVector)){
+    attachVector <- matrix(0, dim(coefMatrix)[1], 1)
+    onlyCoefMatrix <- TRUE
+  } else {
+    onlyCoefMatrix <- FALSE
+  }
+  
 	for(row in c(1:(dim(coefMatrix)[1]-1))){
 		if(coefMatrix[row,row] == 0){
 			# make sure the pivot element is in pivotal row
@@ -52,15 +59,24 @@ ReduceAugmentedMatrix <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT =
 			cat("Step ", row, " result:\n")
 			cat("pivot: ", pivot, "\n")
 			print(coefMatrix)
+			if(!onlyCoefMatrix){
+			  print(attachVector)			  
+			}
 		}
 	}
-	answer <- SolveSTF(coefMatrix, attachVector)
+  
+  answer <- SolveSTF(coefMatrix, attachVector)
+  
 	if(FRAC){
 		coefMatrix <- fractions(coefMatrix)
 		attachVector <- fractions(attachVector)
 		answer <- fractions(answer)
 	}
-	return(list(StrictlyTriangularForm=coefMatrix, AttachVector=matrix(attachVector), Answer=answer))
+  if(!onlyCoefMatrix){
+	  return(list(StrictlyTriangularForm=coefMatrix, AttachVector=matrix(attachVector), Answer=answer))
+  } else {
+    return(StrictlyTriangularForm=coefMatrix)
+  }
 }
 
 # Solve Strictly Triangular Form by Back Substitution
@@ -96,11 +112,18 @@ SolveSTF <- function(STFMatrix, attachVector){
 #' @param PRINT Flag of printing process detail (Default is FALSE)
 #' @return Return a List with StrictlyTriangularForm; AttachVector; Answer (answer will show in string if there is any free variable)
 #' @export
-GaussianElimination <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = FALSE){
+GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRINT = FALSE){
 	if(is.null(dim(coefMatrix))){
 		cat("Error: Please Input Matrix\n")
 		return(NULL)
 	}
+  if(is.na(attachVector)){
+    attachVector <- matrix(0, dim(coefMatrix)[1], 1)
+    onlyCoefMatrix <- TRUE
+  } else {
+    onlyCoefMatrix <- FALSE
+  }
+  
 	col <- 1
 	for(row in c(1:(dim(coefMatrix)[1]))){
 		findPivot <- FALSE
@@ -141,7 +164,6 @@ GaussianElimination <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = F
 				attachVector[irow] <- attachVector[irow] - times * attachVector[row]
 			}
 		}
-
 		# Row Operation II
 		# it's necessary in order to scale the rows so the leading coefficients are all 1
 		coefMatrix[row,] <- pivotal_row/pivot
@@ -150,6 +172,9 @@ GaussianElimination <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = F
 		if(PRINT){
 			cat("Step ", row, " result:\n")
 			print(coefMatrix)
+			if(!onlyCoefMatrix){
+			  print(attachVector)
+			}
 		}
 		if(col < dim(coefMatrix)[2]){
 			col <- col + 1
@@ -157,12 +182,18 @@ GaussianElimination <- function(coefMatrix, attachVector, FRAC = TRUE, PRINT = F
 			break
 		}
 	}
+	
 	answer <- SolveREF(coefMatrix, attachVector, FRAC)
+	
 	if(FRAC){
 		coefMatrix <- fractions(coefMatrix)
 		attachVector <- fractions(attachVector)
 	}
-	return(list(RowEchelonForm=coefMatrix, AttachVector=matrix(attachVector), Answer=answer))
+	if(!onlyCoefMatrix){
+	  return(list(RowEchelonForm=coefMatrix, AttachVector=matrix(attachVector), Answer=answer))
+	} else {
+	  return(RowEchelonForm=coefMatrix)
+	}
 }
 
 # Solve Reduce Echelon Form by Back Substitution
@@ -313,5 +344,39 @@ FindNextPivot <- function(REFMatrix, currentPivot){
   }
 }
 
+#' TestConsistent
+#' 
+#' Test if a linear system is consistent or inconsistent
+#' @param Matrix any matrix
+#' @param attachMatrix matrix or vector
+#' @return consistent: TRUE; inconsisitent: FALSE
+#' @export
+#' 
+isConsistent <- function(Matrix, attachMatrix){
+  if(is.vector(attachMatrix)){
+    attachMatrix <- matrix(attachMatrix)
+  }
+  if(dim(Matrix)[1] != dim(attachMatrix)[1]){
+    return(FALSE)
+  }
+  REFMatrix <- GaussianElimination(Matrix, FRAC = FALSE)
+  for(row in c(dim(REFMatrix)[1]:1)){
+    if(allZero(REFMatrix[row, ])){
+      if(allZero(attachMatrix[row, ])){
+        return(FALSE)
+      }
+    } else {
+      return(TRUE)
+    }
+  }
+}
 
-
+# Test if all element is zero
+allZero <- function(Vector){
+  for(i in length(Vector)){
+    if(Vector[i] != 0){
+      return(FALSE)
+    }
+  }
+  return(TRUE)
+}

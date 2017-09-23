@@ -4,7 +4,8 @@
 \alias{GaussianElimination}
 \title{Gaussian Elimination}
 \usage{
-GaussianElimination(coefMatrix, attachVector, FRAC = TRUE, PRINT = FALSE)
+GaussianElimination(coefMatrix, attachVector = NA, FRAC = TRUE,
+  PRINT = FALSE)
 }
 \arguments{
 \item{coefMatrix}{ceofficient matrix}

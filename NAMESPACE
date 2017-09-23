@@ -2,4 +2,4 @@
 
 export(GaussianElimination)
 export(ReduceAugmentedMatrix)
-export(dimension)
+export(isConsistent)

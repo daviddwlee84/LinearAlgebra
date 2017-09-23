@@ -10,7 +10,9 @@ Some Implementation of Linear Argebra
 
 ## TODO
 
-* Unable to pass the R CMD check `devtools::check()`
-	* It will gets unused argument error (Error in pkgbuild::build)
 
+## Notes
 
+* Solve Mac OS X warnings
+	* In R
+		* `system("defaults write org.R-project.R force.LANG en_US.UTF-8")

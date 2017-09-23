@@ -1,9 +1,8 @@
-#' Dimension
-#'
-#' Dimension function which works for not only matrix and data.frame
-#' @param ... R objects
-#' @return dimension of any R object
-#' @export
+# Dimension
+#
+# Dimension function which works for not only matrix and data.frame
+# @param ... R objects
+# @return dimension of any R object
 dimension <- function( ... ){
 	args <- list(...)
 	lapply(args, function(x){
