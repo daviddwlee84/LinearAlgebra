@@ -11,7 +11,7 @@ library(MASS) # used for fractions() function
 #' @param PRINT Flag of printing process detail (Default is FALSE)
 #' @return Return a List with StrictlyTriangularForm; AttachVector; Answer
 #' @export
-ReduceAugmentedMatrix <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRINT = FALSE){
+ReduceAugmentedMatrix <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRINT = FALSE, SOLVE = TRUE){
 	if(is.null(dim(coefMatrix))){
 		cat("Error: Please Input Matrix\n")
 		return(NULL)
@@ -20,7 +20,8 @@ ReduceAugmentedMatrix <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PR
 		cat("Error: Please Input Square Matrix\n")
 		return(NULL)
 	}
-  if(is.na(attachVector)){
+  if(is.na(attachVector[1])){
+    SOLVE <- FALSE
     attachVector <- matrix(0, dim(coefMatrix)[1], 1)
     onlyCoefMatrix <- TRUE
   } else {
@@ -65,12 +66,18 @@ ReduceAugmentedMatrix <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PR
 		}
 	}
   
-  answer <- SolveSTF(coefMatrix, attachVector)
+  if(SOLVE){
+    answer <- SolveSTF(coefMatrix, attachVector)
+  } else {
+    answer <- NULL
+  }
   
 	if(FRAC){
 		coefMatrix <- fractions(coefMatrix)
 		attachVector <- fractions(attachVector)
-		answer <- fractions(answer)
+		if(SOLVE){
+		  answer <- fractions(answer)
+		}
 	}
   if(!onlyCoefMatrix){
 	  return(list(StrictlyTriangularForm=coefMatrix, AttachVector=matrix(attachVector), Answer=answer))
@@ -83,6 +90,10 @@ ReduceAugmentedMatrix <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PR
 # (only works for square matrix)
 # TODO: consistent: multiple answer & inconsistent
 SolveSTF <- function(STFMatrix, attachVector){
+  if(!isConsistent(STFMatrix, attachVector)){
+    cat("System is inconsistent\n")
+    return(NULL)
+  }
 	pivot <- STFMatrix[dim(STFMatrix)[1],dim(STFMatrix)[2]]
 	answer <- attachVector[dim(STFMatrix)[1]]/pivot
 	for(row in c((dim(STFMatrix)[1]-1):1)){
@@ -112,13 +123,14 @@ SolveSTF <- function(STFMatrix, attachVector){
 #' @param PRINT Flag of printing process detail (Default is FALSE)
 #' @return Return a List with StrictlyTriangularForm; AttachVector; Answer (answer will show in string if there is any free variable)
 #' @export
-GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRINT = FALSE){
+GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRINT = FALSE, SOLVE = TRUE){
 	if(is.null(dim(coefMatrix))){
 		cat("Error: Please Input Matrix\n")
 		return(NULL)
 	}
-  if(is.na(attachVector)){
+  if(is.na(attachVector[1])){
     attachVector <- matrix(0, dim(coefMatrix)[1], 1)
+    SOLVE <- FALSE
     onlyCoefMatrix <- TRUE
   } else {
     onlyCoefMatrix <- FALSE
@@ -183,7 +195,12 @@ GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRIN
 		}
 	}
 	
-	answer <- SolveREF(coefMatrix, attachVector, FRAC)
+	if(SOLVE){
+	  print(attachVector)
+	  answer <- SolveREF(coefMatrix, attachVector, FRAC)
+	} else {
+	  answer <- NULL
+	}
 	
 	if(FRAC){
 		coefMatrix <- fractions(coefMatrix)
@@ -197,8 +214,11 @@ GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRIN
 }
 
 # Solve Reduce Echelon Form by Back Substitution
-# TODO: consistent: multiple answer & inconsistent
 SolveREF <- function(REFMatrix, attachVector, FRAC){
+  if(!isConsistent(REFMatrix, attachVector)){
+    cat("System is inconsistent\n")
+    return(NULL)
+  }
   temp <- FindVariables(REFMatrix)
   variables <- temp[[1]]
   rows <- temp[[2]]
@@ -348,10 +368,11 @@ FindNextPivot <- function(REFMatrix, currentPivot){
 #' 
 #' Test if a linear system is consistent or inconsistent
 #' @param Matrix any matrix
-#' @param attachMatrix matrix or vector
+#' @param attachMatrix matrix or vector (only support vector for current version)
 #' @return consistent: TRUE; inconsisitent: FALSE
 #' @export
 #' 
+# TODO: attachMatrix support matrix
 isConsistent <- function(Matrix, attachMatrix){
   if(is.vector(attachMatrix)){
     attachMatrix <- matrix(attachMatrix)
@@ -359,10 +380,12 @@ isConsistent <- function(Matrix, attachMatrix){
   if(dim(Matrix)[1] != dim(attachMatrix)[1]){
     return(FALSE)
   }
-  REFMatrix <- GaussianElimination(Matrix, FRAC = FALSE)
+  temp <- GaussianElimination(Matrix, attachMatrix, FRAC = FALSE, SOLVE = FALSE)
+  REFMatrix <- temp$RowEchelonForm
+  attachVector <- temp$AttachVector
   for(row in c(dim(REFMatrix)[1]:1)){
     if(allZero(REFMatrix[row, ])){
-      if(allZero(attachMatrix[row, ])){
+      if(!allZero(attachVector[row, ])){
         return(FALSE)
       }
     } else {
