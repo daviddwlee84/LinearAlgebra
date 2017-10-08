@@ -1,4 +1,3 @@
-library(MASS) # used for fractions() function
 #' Reduce Augmented Matrix
 #' 
 #' Reduce Augmented Matrix to Strictly Triangular Form
@@ -73,10 +72,10 @@ ReduceAugmentedMatrix <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PR
   }
   
 	if(FRAC){
-		coefMatrix <- fractions(coefMatrix)
-		attachVector <- fractions(attachVector)
+		coefMatrix <- MASS::fractions(coefMatrix)
+		attachVector <- MASS::fractions(attachVector)
 		if(SOLVE){
-		  answer <- fractions(answer)
+		  answer <- MASS::fractions(answer)
 		}
 	}
   if(!onlyCoefMatrix){
@@ -202,8 +201,8 @@ GaussianElimination <- function(coefMatrix, attachVector = NA, FRAC = TRUE, PRIN
 	}
 	
 	if(FRAC){
-		coefMatrix <- fractions(coefMatrix)
-		attachVector <- fractions(attachVector)
+		coefMatrix <- MASS::fractions(coefMatrix)
+		attachVector <- MASS::fractions(attachVector)
 	}
 	if(!onlyCoefMatrix){
 	  return(list(RowEchelonForm=coefMatrix, AttachVector=matrix(attachVector), Answer=answer))
@@ -247,7 +246,7 @@ SolveREF <- function(REFMatrix, attachVector, FRAC, accuracy=NA){
   answerMatrix <- MSolveSTF(STFMatrix, RHSMatrix)
   
   if(FRAC){
-    answerMatrix <- fractions(answerMatrix)
+    answerMatrix <- MASS::fractions(answerMatrix)
   }
   
   # Find free variables column
